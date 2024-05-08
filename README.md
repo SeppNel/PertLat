@@ -1,5 +1,5 @@
 # PertLat - Latency Tester
-![photo3](https://github.com/SeppNel/PertLat/assets/35899928/631d7f13-a800-4427-935c-2a0b26d6c5b3)
+![photo](https://github.com/SeppNel/PertLat/assets/35899928/631d7f13-a800-4427-935c-2a0b26d6c5b3)
 
 Code for building a latency tester compatible with PC and Gamecube with an arduino.
 Also works with the switch with some GC adapters.
@@ -19,7 +19,7 @@ Also works with the switch with some GC adapters.
 - Male USB to Male Gamecube controller connector cable
 
 ### Wiring
-![Wiring diagram](https://github.com/SeppNel/PertLat/assets/35899928/6649975f-3142-4eb4-80a6-dbd02d22f63f)
+![Wiring diagram](https://github.com/SeppNel/PertLat/assets/35899928/54fa1103-dab2-4cd5-8654-cddbfa17954c)
 
 The colors of the wires in the cables are orientative, don't assume your GC extensions are color coded the same.
 
