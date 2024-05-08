@@ -33,3 +33,8 @@ gnd		| green
 data	| red
 5v		| yellow
 3.3v	| blue
+
+# Acknowledgements
+[NicoHood](https://github.com/NicoHood) for his [Nintendo Library for arduino](https://github.com/NicoHood/Nintendo)  
+[tevey](https://github.com/tevey) for his [SNES to GC adapter](https://github.com/tevey/snesToGameCube) wich I used for reference in this project.  
+[Arte](https://github.com/JulienBernard3383279) creator of the [Lossless adapter](https://www.input-integrity.com/product-page/adaptateur-sans-perte) for helping me on discord with all my stupid questions.  
