@@ -12,9 +12,10 @@ Also works with the switch with some GC adapters.
 ## Hardware
 
 ### Parts
-- Logic Level Converter 5v <-> 3.3v
 - Arduino Nano (I used a cheap clone)
+- Logic Level Converter 5v <-> 3.3v
 - 1kΩ Resistor
+- Photodiode or photoresistor with digital output
 - Female USB port
 - Male USB to Male Gamecube controller connector cable
 
