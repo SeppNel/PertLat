@@ -185,10 +185,10 @@ ISR(TIMER1_COMPA_vect)
     OCR1A += 62500; // 4sec
   }else if(actionCounter == 19){ //Wait for match to load
     actionCounter++;
+    data.report.start = 0;
     digitalWrite(LED_BUILTIN, HIGH);
     while(digitalRead(BUTTON_PIN) == BUTTON_RELEASED){
       GamecubeConsole.write(data);
-      delay(1);
     }
     digitalWrite(LED_BUILTIN, LOW);
     testReady = 1;
@@ -203,7 +203,7 @@ void GC_loop(){
 
     lightSensorState = digitalRead(LIGHT_SENSOR_PIN); // get state of light sensor
     startTime = micros();
-
+ 
     // wait until sensor's state is changed
     while(lightSensorState == NO_LIGHT){
       GamecubeConsole.write(data);
@@ -211,6 +211,7 @@ void GC_loop(){
     }
     
     endTime = micros();
+
     data.report.r = 0;
     data.report.right = 35; // Analog R
     
@@ -218,10 +219,9 @@ void GC_loop(){
     byte * b = (byte *) &responseTime;
     Serial.write(b,4);
 
-    // wait around 1 sec
-    for(int i = 0; i < 100; i++){
+    // wait 1000 polls (around 1 second. Depends on the adapter polling rate)
+    for(int i = 0; i < 1000; i++){
       GamecubeConsole.write(data);
-      delay(10);
     }
   }
   else{
