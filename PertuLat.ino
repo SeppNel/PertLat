@@ -32,9 +32,11 @@ unsigned long endTime;
 // variable for reading the light sensor state
 bool lightSensorState = 0;
 
-//Control var
+//Control vars
 float click = -1.0;
 byte * bClick = (byte *) &click;
+float gcWriteError = -2.0;
+byte * bGcWriteError = (byte *) &gcWriteError;
 
 void setup() {
   // initialize serial communication at 19200 bits per second:
@@ -93,177 +95,139 @@ void GC_Mode_Setup()
 ISR(TIMER1_COMPA_vect)
 {
   // Handle The Timer Interrupt
-  if(testReady){
-    if(data.report.r == 0){
-      data.report.r = 1;
-      digitalWrite(LED_BUILTIN, HIGH);
-
-      lightSensorState = digitalRead(LIGHT_SENSOR_PIN); // get state of light sensor
-      startTime = micros();
-
-      // wait until sensor's state is changed
-      while(lightSensorState == NO_LIGHT)
-      {
-        GamecubeConsole.write(data);
-        lightSensorState = digitalRead(LIGHT_SENSOR_PIN); // get state of light sensor
-      }
-      
-      endTime = micros();
-      
-      float responseTime = (endTime - startTime)/1000.0;
-      //byte * b = (byte *) &responseTime;
-      //Serial.write(b,4);
-
-      digitalWrite(LED_BUILTIN, LOW);
-      OCR1A += 1563; // 0.1sec
+  if(actionCounter == 0){ //Fake a press because it gets skipped
+    actionCounter++;
+    data.report.a = 1;
+    OCR1A += 7813; // 0.5sec
+  }else if(actionCounter== 1){ //Fake a press release
+    actionCounter++;
+    data.report.a = 0;
+    OCR1A += 15624; //1sec
+  }else if(actionCounter == 2){ //Dpad Right
+    actionCounter++;
+    data.report.dright = 1;
+    OCR1A += 15624; //1sec
+  }else if(actionCounter == 3){ //Dpad Up
+    actionCounter++;
+    data.report.dright = 0;
+    data.report.dup = 1;
+    OCR1A += 15624; //1sec
+  }else if(actionCounter == 4){ //A - Enter Games & More
+    actionCounter++;
+    data.report.dup = 0;
+    data.report.a = 1;
+    OCR1A += 15624; //1sec
+  }else if(actionCounter == 5){ //Dpad Down
+    actionCounter++;
+    data.report.a = 0;
+    data.report.ddown = 1;
+    OCR1A += 1563; // 0.1sec
+  }else if(actionCounter == 6){ //Dpad Left
+    actionCounter++;
+    data.report.ddown = 0;
+    data.report.dleft = 1;
+    OCR1A += 15624; // 1sec
+  }else if(actionCounter == 7){ //A - Enter training mode
+    actionCounter++;
+    data.report.dleft = 0;
+    data.report.a = 1;
+    OCR1A += 46875; // 3sec
+  }else if(actionCounter == 8){ //Dpad right
+    actionCounter++;
+    data.report.a = 0;
+    data.report.dright = 1;
+    OCR1A += 14062; // 0.9sec
+  }else if(actionCounter == 9){ //Dpad down
+    actionCounter++;
+    data.report.dright = 0;
+    data.report.ddown = 1;
+    OCR1A += 3906; // 0.25sec
+  }else if(actionCounter == 10){ //X - change to battlefield form
+    actionCounter++;
+    data.report.ddown = 0;
+    data.report.x = 1;
+    OCR1A += 3906; // 0.25sec
+  }else if(actionCounter == 11){ //release X
+    actionCounter++;
+    data.report.x = 0;
+    OCR1A += 3906; // 0.25sec
+  }else if(actionCounter == 12){ //X - change to omega form
+    actionCounter++;
+    data.report.x = 1;
+    OCR1A += 3906; // 0.25sec
+  }else if(actionCounter == 13){ //A - choose 75m omega
+    actionCounter++;
+    data.report.x = 0;
+    data.report.a = 1;
+    OCR1A += 62500; // 4sec
+  }else if(actionCounter == 14){ //Wait extented
+    actionCounter++;
+    OCR1A += 62500; // 4sec
+  }else if(actionCounter == 15){ //Dpad up
+    actionCounter++;
+    data.report.a = 0;
+    data.report.dup = 1;
+    OCR1A += 7032; // 0.45sec
+  }else if(actionCounter == 16){ //Dpad right
+    actionCounter++;
+    data.report.dup = 0;
+    data.report.dright = 1;
+    OCR1A += 17968; // 1.15sec
+  }else if(actionCounter == 17){ //A - Pick Little Mac
+    actionCounter++;
+    data.report.dright = 0;
+    data.report.a = 1;
+    OCR1A += 3906; // 0.25sec
+  }else if(actionCounter == 18){ //Start - Start Match
+    actionCounter++;
+    data.report.a = 0;
+    data.report.start = 1;
+    OCR1A += 62500; // 4sec
+  }else if(actionCounter == 19){ //Wait for match to load
+    actionCounter++;
+    digitalWrite(LED_BUILTIN, HIGH);
+    while(digitalRead(BUTTON_PIN) == BUTTON_RELEASED){
+      GamecubeConsole.write(data);
+      delay(1);
     }
-    else{
-      data.report.r = 0;
-      OCR1A += 62500; // 1sec
-    }
-  }
-  else{
-    if(actionCounter == 0){ //Fake a press because it gets skipped
-      actionCounter++;
-      data.report.a = 1;
-      OCR1A += 7813; // 0.5sec
-    }else if(actionCounter== 1){ //Fake a press release
-      actionCounter++;
-      data.report.a = 0;
-      OCR1A += 15624; //1sec
-    }else if(actionCounter == 2){ //Dpad Right
-      actionCounter++;
-      data.report.dright = 1;
-      OCR1A += 15624; //1sec
-    }else if(actionCounter == 3){ //Dpad Up
-      actionCounter++;
-      data.report.dright = 0;
-      data.report.dup = 1;
-      OCR1A += 15624; //1sec
-    }else if(actionCounter == 4){ //A - Enter Games & More
-      actionCounter++;
-      data.report.dup = 0;
-      data.report.a = 1;
-      OCR1A += 15624; //1sec
-    }else if(actionCounter == 5){ //Dpad Down
-      actionCounter++;
-      data.report.a = 0;
-      data.report.ddown = 1;
-      OCR1A += 1563; // 0.1sec
-    }else if(actionCounter == 6){ //Dpad Left
-      actionCounter++;
-      data.report.ddown = 0;
-      data.report.dleft = 1;
-      OCR1A += 15624; // 1sec
-    }else if(actionCounter == 7){ //A - Enter training mode
-      actionCounter++;
-      data.report.dleft = 0;
-      data.report.a = 1;
-      OCR1A += 46875; // 3sec
-    }else if(actionCounter == 8){ //Dpad right
-      actionCounter++;
-      data.report.a = 0;
-      data.report.dright = 1;
-      OCR1A += 14062; // 0.9sec
-    }else if(actionCounter == 9){ //Dpad down
-      actionCounter++;
-      data.report.dright = 0;
-      data.report.ddown = 1;
-      OCR1A += 3906; // 0.25sec
-    }else if(actionCounter == 10){ //X - change to battlefield form
-      actionCounter++;
-      data.report.ddown = 0;
-      data.report.x = 1;
-      OCR1A += 3906; // 0.25sec
-    }else if(actionCounter == 11){ //release X
-      actionCounter++;
-      data.report.x = 0;
-      OCR1A += 3906; // 0.25sec
-    }else if(actionCounter == 12){ //X - change to omega form
-      actionCounter++;
-      data.report.x = 1;
-      OCR1A += 3906; // 0.25sec
-    }else if(actionCounter == 13){ //A - choose 75m omega
-      actionCounter++;
-      data.report.x = 0;
-      data.report.a = 1;
-      OCR1A += 62500; // 4sec
-    }else if(actionCounter == 14){ //Wait extented
-      actionCounter++;
-      OCR1A += 62500; // 4sec
-    }else if(actionCounter == 15){ //Dpad up
-      actionCounter++;
-      data.report.a = 0;
-      data.report.dup = 1;
-      OCR1A += 7032; // 0.45sec
-    }else if(actionCounter == 16){ //Dpad right
-      actionCounter++;
-      data.report.dup = 0;
-      data.report.dright = 1;
-      OCR1A += 18750; // 1.2sec
-    }else if(actionCounter == 17){ //A - Pick Little Mac
-      actionCounter++;
-      data.report.dright = 0;
-      data.report.a = 1;
-      OCR1A += 3906; // 0.25sec
-    }else if(actionCounter == 18){ //Start - Start Match
-      actionCounter++;
-      data.report.a = 0;
-      data.report.start = 1;
-      OCR1A += 62500; // 4sec
-    }else if(actionCounter == 19){ //Wait extended
-      actionCounter++;
-      digitalWrite(LED_BUILTIN, HIGH);
-      while(digitalRead(BUTTON_PIN) == BUTTON_RELEASED){
-        GamecubeConsole.write(data);
-        delay(1);
-      }
-      digitalWrite(LED_BUILTIN, LOW);
-      testReady = 1;
-      //OCR1A += 7813; // 0.5sec
-      TIMSK1 = B00000000; //Disable timer interrupts
-    }
-    else{
-      OCR1A += 62500; // 4sec
-    }
+    digitalWrite(LED_BUILTIN, LOW);
+    testReady = 1;
+    TIMSK1 = B00000000; //Disable timer interrupts
   }
 }
 
 void GC_loop(){
   if(testReady){
-      data.report.r = 1;
-      digitalWrite(LED_BUILTIN, HIGH);
+    data.report.r = 1;
+    data.report.right = 200; //Analog R
 
+    lightSensorState = digitalRead(LIGHT_SENSOR_PIN); // get state of light sensor
+    startTime = micros();
+
+    // wait until sensor's state is changed
+    while(lightSensorState == NO_LIGHT){
+      GamecubeConsole.write(data);
       lightSensorState = digitalRead(LIGHT_SENSOR_PIN); // get state of light sensor
-      startTime = micros();
+    }
+    
+    endTime = micros();
+    data.report.r = 0;
+    data.report.right = 35; // Analog R
+    
+    float responseTime = (endTime - startTime)/1000.0;
+    byte * b = (byte *) &responseTime;
+    Serial.write(b,4);
 
-      // wait until sensor's state is changed
-      while(lightSensorState == NO_LIGHT){
-        GamecubeConsole.write(data);
-        lightSensorState = digitalRead(LIGHT_SENSOR_PIN); // get state of light sensor
-      }
-      
-      endTime = micros();
-      data.report.r = 0;
-      
-      float responseTime = (endTime - startTime)/1000.0;
-      byte * b = (byte *) &responseTime;
-      Serial.write(b,4);
-      //Serial.println(responseTime);
-
-      // wait around 1 sec
-      for(int i = 0; i < 100; i++){
-        GamecubeConsole.write(data);
-        delay(10);
-      }
-
-      digitalWrite(LED_BUILTIN, LOW);
+    // wait around 1 sec
+    for(int i = 0; i < 100; i++){
+      GamecubeConsole.write(data);
+      delay(10);
+    }
   }
   else{
-
     // Write controller data to the console
     if (!GamecubeConsole.write(data)){
-      Serial.println(F("Error writing Gamecube controller."));
+      Serial.write(bGcWriteError,4);
       delay(1000);
     }
   }
